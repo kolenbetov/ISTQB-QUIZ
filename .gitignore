@@ -1,1 +1,574 @@
 node_modules
+
+
+package.json
+**************************************************************************************
+{
+  "name": "quiz",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "build": "browserify -t handleify -t reactify public/main.js -o public/build.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://kolenbetov@bitbucket.org/kolenbetov/igoryan-quiz.git"
+  },
+  "author": "kolenbei",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^6.3.3",
+    "handleify": "^0.1.2",
+    "reactify": "^0.17.1"
+  },
+  "dependencies": {
+    "handlebars": "^2.0.0",
+    "jquery": "^2.1.3",
+    "react": "^0.12.2"
+  }
+}
+
+**************************************************************************************
+
+
+index.html
+**************************************************************************************
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <script src="//builds.handlebarsjs.com.s3.amazonaws.com/handlebars-v3.0.0.js"></script>
+    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    <title>ISTQB QUIZ</title>
+
+</head>
+<body>
+<div id="timer"></div>
+<div class="container"></div>
+<div class="buttons"></div>
+<!--<script type="text/javascript" src="login.js"></script>-->
+<script type="text/javascript" src="build.js"></script>
+<!--    <script type="text/javascript" src="userFunctions.js"></script>-->
+</body>
+</html>
+**************************************************************************************
+
+stylesheet.css
+**************************************************************************************
+body {
+    background-color: #DFDFE0;
+}
+
+.loginBox {
+    height: 70%;
+    width: 10%;
+    margin: 15px auto;
+    background-color: #F9F9FB;
+    border: 1px solid #D8D8DC;
+    border-radius: 5px;
+    box-shadow: 2px 0px 5px #565658;
+    overflow: hidden;
+    padding: 30px;
+}
+
+.welcome {
+    width: 80%;
+    display: block;
+    text-align: right;
+    clear: both;
+}
+
+#username {
+    border-color: #565658 #cccbcb #aeaeae;
+    border-radius: 5px;
+    border-style: solid;
+    border-width: 1px;
+    height: 26px;
+    margin-bottom: 20px;
+}
+
+#timer {
+    display: block;
+    text-align: center;
+}
+
+.container {
+    height: 70%;
+    width: 40%;
+    margin: 15px auto;
+    background-color: #F9F9FB;
+    border: 1px solid #D8D8DC;
+    border-radius: 5px;
+    box-shadow: 2px 0px 5px #565658;
+    overflow: hidden;
+ }
+
+.question {
+    background-color: #F9F9FB;
+    padding: 15px;
+    padding-top: 0px;
+    margin-bottom: 15px;
+    position: relative;
+    height: 400px;
+}
+
+.results {
+    background-color: #F9F9FB;
+    padding: 15px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.correct-answer{
+    border-radius: 5px;
+    background: rgba(90, 253, 10, 0.5);
+}
+
+.wrong-answer{
+    background-color: #744b4a;
+}
+
+h2, h3 {
+    text-shadow: 0 1px 0 #C0C0C4;
+}
+
+.buttons {
+    width: 40%;
+    margin: auto;
+    position: relative;
+}
+
+#finish {
+    float: right;
+}
+
+#next {
+    float: right;
+}
+
+form {
+    margin-left: 15px;
+}
+
+button {
+    background-color: #eee !important;
+    background-image: -moz-linear-gradient(center top, #eee, #e1e1e1);
+    border-color: #d9d8d8 #cccbcb #aeaeae;
+    border-radius: 6px;
+    border-style: solid;
+    border-width: 1px;
+    box-shadow: 0 1px 0 #fff inset;
+    color: #282828 !important;
+    cursor: pointer;
+    display: inline;
+    font-family: arial, sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    height: 30px;
+    line-height: 30px;
+    margin: 0;
+    padding: 0 10px;
+    text-decoration: none;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+    vertical-align: middle;
+}
+
+#score {
+    text-align: center;
+    vertical-align: middle;
+    background-color: #F9F9FB;
+    border: 1px solid #D8D8DC;
+    border-radius: 5px;
+    box-shadow: 0px 0px 1px #565658;
+}
+**************************************************************************************
+
+
+main.js
+**************************************************************************************
+var getQuestionsForTest = require('./createDataForTest').selectQuestionsForTest;
+var questionsView = require('./views/question-view');
+var buttonView = require('./views/button-view');
+var resultsView = require('./views/result-view');
+//var startTimer = require('./countDown');
+var Region = require('./region');
+var buttonsParentView = require('./views/buttonsParentView');
+var reactTimer = require('./timer.react');
+
+var containerRegion = new Region({
+    el: '.container'
+});
+
+var buttonsRegion = new Region({
+    el: '.buttons'
+});
+
+function startQuiz(){
+    getQuestionsForTest(onQuestionsReady);
+
+    function onQuestionsReady(questionsForTest) {
+        renderQuestionPage(questionsForTest[0], questionsForTest);
+//        startTimer(finishTest.bind(null, questionsForTest, true));
+    }
+}
+
+function renderQuestionPage(currentQuestion, questions) {
+
+    var viewEl = questionsView({
+        data: currentQuestion,
+        onSelect: getUserAnswer
+    });
+    var nextBtn = buttonView({
+        data: { id: 'next', text:'Next' },
+        onClick: renderNextQuestion
+    });
+    var backBtn = buttonView( {
+        data: {id: 'back', text: 'Back'},
+        onClick: renderPreviousQuestion
+    });
+    var finishBtn = buttonView( {
+        data:{id: 'finish', text: 'Finish'},
+        onClick: finishTest.bind(null, questions)
+    });
+
+    containerRegion.set(viewEl);
+
+    var buttonViews = [];
+    if ( questions.indexOf(currentQuestion) == questions.length - 1 ) {
+        buttonViews.push(backBtn, finishBtn);
+    } else if ( questions.indexOf(currentQuestion) == 0 ) {
+        buttonViews.push(finishBtn, nextBtn);
+    } else {
+        buttonViews.push(backBtn, finishBtn, nextBtn);
+    }
+    buttonsRegion.set(buttonsParentView({
+        children: buttonViews
+    }));
+
+    function getUserAnswer(){
+        currentQuestion.userAnswer = this.value;
+    }
+
+    function renderNextQuestion(){
+        var nextQuestionInx = questions.indexOf(currentQuestion) + 1;
+        if (nextQuestionInx < questions.length) {
+            renderQuestionPage(questions[nextQuestionInx], questions);
+        }
+    }
+
+    function renderPreviousQuestion(){
+        var previousQuestionInx = questions.indexOf(currentQuestion) - 1;
+        if (previousQuestionInx >= 0) {
+            renderQuestionPage(questions[previousQuestionInx], questions);
+        }
+    }
+}
+
+function finishTest(questions, force){
+    if(force) {
+        if (!isAllAnswered(questions)) {
+            populateUnansweredQuestions(questions);
+        }
+        var score = getUserScore(questions);
+        renderResultsPage(questions, score);
+    }
+    else {
+        if(!isAllAnswered(questions)) {
+            alert("Please select answers for all the question");
+        }
+    }
+}
+
+function populateUnansweredQuestions(questions){
+    questions.forEach(function(question){
+        if(!question.userAnswer){
+            question.userAnswer = " ";
+        }
+    });
+}
+
+function isAllAnswered(questions){
+    return questions.every(function(question){
+        return question.userAnswer;
+    });
+}
+
+function getUserScore(questions){
+    var score = 0;
+    questions.forEach(function(question){
+        if(question.userAnswer === question.correct){
+             score++;
+        }
+     });
+     return score;
+}
+
+function renderResultsPage(questions, score) {
+
+    var resultsEl = resultsView({
+        results: questions,
+        score: score
+    });
+
+    containerRegion.set(resultsEl);
+    buttonsRegion.set(null);
+//    var buttonsContainer = document.querySelector('.buttons');
+//    buttonsContainer.innerHTML = "";
+//    container.appendChild(resultsEl);
+}
+
+startQuiz();
+**************************************************************************************
+
+createDataForTest.js
+**************************************************************************************
+var curQuestion = 0;
+var NUM_OF_QUESTIONS = 5;
+var questionsForTest = [];
+var url = 'data.json';
+
+
+function getJSON(cb) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onload = function () {
+        if (xhr.readyState !=4 ) return;
+        var questions = JSON.parse(this.response);
+        cb(questions);
+    };
+    xhr.send(null);
+}
+
+function generateRandomNumber(max) {
+    var random = Math.floor(Math.random() * max);
+    return random;
+}
+
+function selectQuestionsForTest(cb) {
+
+    getJSON(onQuestionsReceived);
+
+    function onQuestionsReceived(questions) {
+        var questionsForTest = [];
+        for (var i = 0; i < NUM_OF_QUESTIONS; i++) {
+            var random = generateRandomNumber(questions.length);
+            while (questionsForTest.indexOf(questions[random]) >= 0) {
+                random = generateRandomNumber(questions.length);
+            }
+            questionsForTest.push(questions[random]);
+        }
+        cb(questionsForTest);
+    }
+}
+
+
+module.exports = {
+    selectQuestionsForTest: selectQuestionsForTest
+    /*getJSON: getJSON,
+    curQuestion: curQuestion,
+    numberOfQuestions: NUM_OF_QUESTIONS,
+    questionsForTest: questionsForTest*/
+};
+**************************************************************************************
+
+button-view.js
+**************************************************************************************
+var $ = require('jquery');
+var btnTpl = require('../../templates/button.hbs');
+
+module.exports = function(options) {
+    options = options || {};
+
+    var el = $(btnTpl(options.data)).get(0);
+    el.addEventListener('click', options.onClick);
+    return el;
+}
+**************************************************************************************
+
+buttonsParentView.js
+**************************************************************************************
+module.exports = function(options){
+    var el = document.createElement('div');
+    options.children.forEach(function(button){
+        el.appendChild(button);
+    });
+    return el;
+}
+**************************************************************************************
+
+question-view.js
+**************************************************************************************
+var $ = require('jquery');
+var questionTpl = require('../../templates/question.hbs');
+
+module.exports = function(options) {
+
+
+    var el = $(questionTpl(options.data)).get(0);
+    if(options.data.userAnswer){
+        el.querySelector('[data-id=' + options.data.userAnswer.toLowerCase() + options.data.id + ']').checked = true;
+    }
+    $(el).find('input:radio').on('change', options.onSelect );
+    return el;
+
+}
+**************************************************************************************
+
+result-view.js
+**************************************************************************************
+var $ = require('jquery');
+var resultTpl = require('../../templates/result.hbs');
+
+module.exports = function(options){
+
+    var el = $(resultTpl(options)).get(0);
+    options.results.forEach(function(question) {
+        if(question.userAnswer && question.userAnswer !== " "){
+            var userAnswer = el.querySelector('[data-id=' + question.userAnswer.toLowerCase() + question.id + ']');
+            userAnswer.checked = true;
+        }
+        var correctAnswer = el.querySelector('[data-id=' + question.correct.toLowerCase() + question.id + '-choice]');
+        correctAnswer.className = 'correct-answer';
+    });
+    return el;
+
+}
+**************************************************************************************
+
+region.js
+**************************************************************************************
+function Region(options){
+    this.container = document.querySelector(options.el);
+}
+
+Region.prototype.set = function(view){
+    this.clear();
+    if(view){
+        this.container.appendChild(view);
+    }
+};
+
+Region.prototype.clear = function(){
+    this.container.innerHTML = "";
+};
+
+module.exports = Region;
+**************************************************************************************
+
+button.hbs
+**************************************************************************************
+<button id="{{id}}">{{text}}</button>
+**************************************************************************************
+
+question.hbs
+**************************************************************************************
+<div id="{{id}}" class="question">
+    <h2 class="title">{{text}}</h2>
+    <form>
+        <div>
+            <input id="a" type="radio" name="answer" value="A" data-id="a{{id}}"/>
+            <label for="a">{{answers.[0]}}</label>
+        </div>
+        <div>
+            <input id="b" type="radio" name="answer" value="B" data-id="b{{id}}"/>
+            <label for="b">{{answers.[1]}}</label>
+        </div>
+        <div>
+            <input id="c" type="radio" name="answer" value="C" data-id="c{{id}}"/>
+            <label for="c">{{answers.[2]}}</label>
+        </div>
+        <div>
+            <input id="d" type="radio" name="answer" value="D" data-id="d{{id}}"/>
+            <label for="d">{{answers.[3]}}</label>
+        </div>
+    </form>
+</div>
+**************************************************************************************
+
+result.hbs
+**************************************************************************************
+<div class="results">
+    <div id="score">
+        <h2>Your score is {{score}} from {{results.length}}</h2>
+    </div>
+    {{#each results}}
+    <div class="question-result">
+        <h3 class="title">{{text}}</h3>
+        <form>
+            <div data-id="a{{id}}-choice">
+                <input id="a" type="radio" name="answer" value="A" data-id="a{{id}}" disabled/>
+                <label for="a">{{answers.[0]}}</label>
+            </div>
+            <div data-id="b{{id}}-choice">
+                <input id="b" type="radio" name="answer" value="B" data-id="b{{id}}" disabled/>
+                <label for="b">{{answers.[1]}}</label>
+            </div>
+            <div data-id="c{{id}}-choice">
+                <input id="c" type="radio" name="answer" value="C" data-id="c{{id}}" disabled/>
+                <label for="c">{{answers.[2]}}</label>
+            </div>
+            <div data-id="d{{id}}-choice">
+                <input id="d" type="radio" name="answer" value="D" data-id="d{{id}}" disabled/>
+                <label for="d">{{answers.[3]}}</label>
+            </div>
+        </form>
+    </div>
+    {{/each}}
+</div>
+**************************************************************************************
+
+countDown.js
+**************************************************************************************
+module.exports = function(cb){
+    var timer = document.querySelector('#timer');
+    var seconds = 900;
+
+    var countDown = setInterval(function(){
+        var minutes = Math.round((seconds - 30)/60);
+        var remainingSeconds = seconds % 60;
+        if (remainingSeconds < 10) {
+            remainingSeconds = "0" + remainingSeconds;
+        } timer.innerHTML = minutes + ":" + remainingSeconds;
+        if (seconds === 0){
+            clearInterval(countDown);
+            cb();
+       }
+        else {
+            seconds--;
+        }
+    }, 1000);
+};
+**************************************************************************************
+
+timer.react.js
+**************************************************************************************
+var React = require('react');
+
+var Timer = React.createClass({
+    getInitialState: function(){
+        return {secondsRemaining: 5}
+    },
+    tick: function(){
+        this.setState({secondsRemaining: this.state.secondsRemaining - 1});
+    },
+    componentDidMount: function() {
+        this.interval = setInterval(this.tick, 1000)
+    },
+    componentWillUnmount: function(){
+        if(this.state.secondsRemaining === 0){
+            clearInterval(this.interval);
+            alert("time is up");
+        }
+    },
+    render: function(){
+        return(
+            <div>TimeRemaining: {this.state.secondsRemaining}</div>
+        )
+    }
+});
+
+React.render(<Timer />, document.getElementById('timer'));
+**************************************************************************************
