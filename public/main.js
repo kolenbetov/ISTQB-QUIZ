@@ -6,6 +6,7 @@ var resultsView = require('./views/result-view');
 var Region = require('./region');
 var buttonsParentView = require('./views/buttonsParentView');
 var reactTimer = require('./timer.react.js');
+var React = require('react');
 
 var containerRegion = new Region({
     el: '.container'
@@ -20,6 +21,7 @@ function startQuiz(){
 
     function onQuestionsReady(questionsForTest) {
         renderQuestionPage(questionsForTest[0], questionsForTest);
+        reactTimer(finishTest.bind(null, questionsForTest, true));
 //        startTimer(finishTest.bind(null, questionsForTest, true));
     }
 }
@@ -77,6 +79,7 @@ function renderQuestionPage(currentQuestion, questions) {
 }
 
 function finishTest(questions, force){
+    React.unmountComponentAtNode(document.getElementById('timer'));
     if(force) {
         if (!isAllAnswered(questions)) {
             populateUnansweredQuestions(questions);
