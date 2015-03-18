@@ -1,0 +1,28 @@
+<div class="results">
+    <div id="score">
+        <h2>Your score is {{score}} from {{results.length}}</h2>
+    </div>
+    {{#each results}}
+        <div class="question-result">
+            <h3 class="title">{{text}}</h3>
+            <form>
+                <div data-id="a{{id}}-choice">
+                    <input id="a" type="radio" name="answer" value="A" data-id="a{{id}}" disabled/>
+                    <label for="a">{{answers.[0]}}</label>
+                </div>
+                <div data-id="b{{id}}-choice">
+                    <input id="b" type="radio" name="answer" value="B" data-id="b{{id}}" disabled/>
+                    <label for="b">{{answers.[1]}}</label>
+                </div>
+                <div data-id="c{{id}}-choice">
+                    <input id="c" type="radio" name="answer" value="C" data-id="c{{id}}" disabled/>
+                    <label for="c">{{answers.[2]}}</label>
+                </div>
+                <div data-id="d{{id}}-choice">
+                    <input id="d" type="radio" name="answer" value="D" data-id="d{{id}}" disabled/>
+                    <label for="d">{{answers.[3]}}</label>
+                </div>
+            </form>
+        </div>
+    {{/each}}
+</div>
