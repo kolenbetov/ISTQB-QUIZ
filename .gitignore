@@ -1,5 +1,6 @@
 node_modules
 
+React.unmountComponentAtNode(document.getElementById('timer'));
 
 var React = require('react');
 
