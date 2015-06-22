@@ -41,7 +41,7 @@ app.post('/login', function(req, res){
 });
 
 //TODO change to app.get('/questions')
-app.post('/start', function(req, res){
+app.get('/questions', function(req, res){
   Question.find({}, function(err, docs){
     if (err) {
       console.log("error while receiving questions: " + err)
