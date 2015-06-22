@@ -6,7 +6,7 @@ var questionSchema = new mongoose.Schema({
 	answers: Array,
 	correct: String,
 	userAnswer: String
-}) 
+});
 
 var Question = mongoose.model('questions', questionSchema);
 

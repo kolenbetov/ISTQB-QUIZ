@@ -19,8 +19,7 @@ function makeFormMixin(fields){
     });
 
     return mixin;
-};
-
+}
 function camelJoin(parts){
     return parts.map(function(part, i){
         if (i === 0) {

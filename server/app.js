@@ -8,6 +8,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var User = require('./models/user');
 var Question = require('./models/question');
+var db = require('./models/db');
 
 var app = express();
 
@@ -65,7 +66,7 @@ app.post('/register', function(req, res){
       res.send(inserted);
     }
   })
-})
+});
 
 /*app.get('/logout', function(req,res) {
  delete req.session.user_id;
