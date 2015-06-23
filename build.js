@@ -123,14 +123,12 @@ function getUser(username, cb){
         .then(function(res){
             return res.json();
         }).then(function(json) {
-            console.log(json);
             cb(json);
         }).catch(function(ex){
             console.log('Error: ', ex);
         });
 
-/*
-    var xhr = new XMLHttpRequest();
+/*    var xhr = new XMLHttpRequest();
     xhr.open('POST', '/login', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     xhr.onload = function(){
@@ -138,8 +136,7 @@ function getUser(username, cb){
         var res = JSON.parse(this.response);
         cb(res);
     };
-    xhr.send(params);
-*/
+    xhr.send(params);*/
 }
 
 function handleLoginRequest(username, password){
@@ -149,6 +146,7 @@ function handleLoginRequest(username, password){
         } else {
             if (isValidPassword(res, password)){
                 React.unmountComponentAtNode(document.querySelector('.login-container'));
+                history.pushState(null, null, '/welcome')
                 React.render(React.createElement(Landing, null), document.querySelector('.app'));
             }
         }
@@ -216,6 +214,7 @@ module.exports = React.createClass({displayName: "exports",
     onGoToRegistration: function(){
         addDiv();
         React.unmountComponentAtNode(document.querySelector('.login-container'));
+        history.pushState(null, null, '/register');
         React.render(React.createElement(RegistrationForm, null), document.querySelector('.registration'));
     },
 
@@ -39107,6 +39106,7 @@ module.exports = function startQuiz(user){
     function onQuestionsReady(questions){
 //        if (!user) React.unmountComponentAtNode(document.querySelector('.login-container'));
 //        if(user) React.render(<TopMenu user={user} />, document.querySelector('.horizontal-menu'));
+        history.pushState(null, null, '/quiz');
         React.render(React.createElement(App, {data: questions}), document.querySelector('.app'));
     }
 };
@@ -39181,7 +39181,21 @@ function saveUserToDB(email, password, cb){
     var password_hash = bcrypt.hashSync(password, salt);
 
     var params = 'username=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password_hash);
-    var xhr = new XMLHttpRequest();
+
+    fetch('/register', {
+        method: 'POST',
+        headers: {"Content-type": "application/x-www-form-urlencoded; charset=UTF-8"},
+        body: params
+    })
+        .then(function(res){
+            return res.json()
+        }).then(function(json){
+            cb(json)
+        }).catch(function(ex){
+            console.log("Error: ", ex)
+        });
+
+/*    var xhr = new XMLHttpRequest();
     xhr.open('POST', '/register', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     xhr.onload = function(){
@@ -39189,7 +39203,7 @@ function saveUserToDB(email, password, cb){
         var res = JSON.parse(this.response);
         cb(res);
     };
-    xhr.send(params);
+    xhr.send(params);*/
 }
 
 function handleRegisterRequest(email, password){
@@ -39201,6 +39215,7 @@ function handleRegisterRequest(email, password){
             }
         } else {
                 React.unmountComponentAtNode(document.querySelector('.registration'));
+                history.pushState(null, null, '/welcome');
                 React.render(React.createElement(Landing, null), document.querySelector('.app'));
         }
     })

@@ -12,23 +12,10 @@ function getUser(username, cb){
         .then(function(res){
             return res.json();
         }).then(function(json) {
-            console.log(json);
             cb(json);
         }).catch(function(ex){
             console.log('Error: ', ex);
         });
-
-/*
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/login', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onload = function(){
-        if(xhr.readyState != 4 && http.status != 200) return;
-        var res = JSON.parse(this.response);
-        cb(res);
-    };
-    xhr.send(params);
-*/
 }
 
 function handleLoginRequest(username, password){
