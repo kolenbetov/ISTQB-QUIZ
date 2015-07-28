@@ -7,6 +7,7 @@ var Result = React.createClass({
         return (
             <div className="results">
                 <div id="score">
+                    <h2>Test finished on: {this.props.date}</h2>
                     <h2>Your score is {this.props.score} from {questions.length}</h2>
                 </div>
             {questions.map(function(question){

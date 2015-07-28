@@ -96,9 +96,12 @@ var startQuiz = require('../quiz/start-quiz');
 module.exports = React.createClass({
 
     render: function(){
-        return (<div>
-            <button onClick = {this.onClick} id="start-quiz">Start QUIZ </button>
-        </div>)
+        return (
+            <div>
+                <button onClick = {this.onClick} id="start-quiz">Start QUIZ </button>
+                <button id="results-history">See All Your Results</button>
+            </div>
+        )
     },
 
     onClick: function(){

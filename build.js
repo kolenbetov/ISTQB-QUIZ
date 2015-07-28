@@ -97,9 +97,12 @@ var startQuiz = require('../quiz/start-quiz');
 module.exports = React.createClass({displayName: "exports",
 
     render: function(){
-        return (React.createElement("div", null, 
-            React.createElement("button", {onClick: this.onClick, id: "start-quiz"}, "Start QUIZ ")
-        ))
+        return (
+            React.createElement("div", null, 
+                React.createElement("button", {onClick: this.onClick, id: "start-quiz"}, "Start QUIZ "), 
+                React.createElement("button", {id: "results-history"}, "See All Your Results")
+            )
+        )
     },
 
     onClick: function(){
@@ -108,13 +111,13 @@ module.exports = React.createClass({displayName: "exports",
 
 });
 
-},{"../quiz/start-quiz":332,"react":322}],2:[function(require,module,exports){
+},{"../quiz/start-quiz":333,"react":322}],2:[function(require,module,exports){
 var React = require('react');
 var bcrypt = require('bcrypt-nodejs');
 var Landing = require('../landing/landing.react.js');
 
-function getUser(username, cb){
-    var params = 'username=' + encodeURIComponent(username);
+function getUser(username, password, cb){
+    var params = 'username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
     fetch('/login', {
         method: 'POST',
         headers: {"Content-type": "application/x-www-form-urlencoded; charset=UTF-8"},
@@ -127,30 +130,21 @@ function getUser(username, cb){
         }).catch(function(ex){
             console.log('Error: ', ex);
         });
-
-/*    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/login', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onload = function(){
-        if(xhr.readyState != 4 && http.status != 200) return;
-        var res = JSON.parse(this.response);
-        cb(res);
-    };
-    xhr.send(params);*/
 }
 
 function handleLoginRequest(username, password){
-    getUser(username, function(res){
+    getUser(username, password, function(res){
         if (res.name === 'MongoError'){
             alert(res);
         } else {
-            if (isValidPassword(res, password)){
+            alert(res);
+//            if (isValidPassword(res, password)){
+//                document.cookie = "user=" + username;
                 React.unmountComponentAtNode(document.querySelector('.login-container'));
-                history.pushState(null, null, '/welcome')
                 React.render(React.createElement(Landing, null), document.querySelector('.app'));
-            }
-        }
-    })
+                }
+        });
+//    })
 }
 
 function isValidPassword(user, password){
@@ -187,7 +181,7 @@ module.exports = React.createClass({displayName: "exports",
                 React.createElement("form", null, 
                     React.createElement("h1", null, "Login Form"), 
                     React.createElement("div", null, 
-                        React.createElement("input", {type: "text", id: "username", placeholder: "Username", onChange: this.onUsernameChange})
+                        React.createElement("input", {type: "text", id: "username", placeholder: "Email", onChange: this.onUsernameChange})
                     ), 
                     React.createElement("div", null, 
                         React.createElement("input", {type: "password", id: "password", placeholder: "Password", onChange: this.onPasswordChange})
@@ -214,7 +208,6 @@ module.exports = React.createClass({displayName: "exports",
     onGoToRegistration: function(){
         addDiv();
         React.unmountComponentAtNode(document.querySelector('.login-container'));
-        history.pushState(null, null, '/register');
         React.render(React.createElement(RegistrationForm, null), document.querySelector('.registration'));
     },
 
@@ -229,7 +222,7 @@ module.exports = React.createClass({displayName: "exports",
 });
 
 
-},{"../quiz/start-quiz":332,"../register/registration-form.react":336,"../shared/make-form.react":339,"./login":2,"react":322}],4:[function(require,module,exports){
+},{"../quiz/start-quiz":333,"../register/registration-form.react":337,"../shared/make-form.react":340,"./login":2,"react":322}],4:[function(require,module,exports){
 (function (process,Buffer){
 var crypto = require("crypto");
 
@@ -38773,6 +38766,338 @@ module.exports = warning;
 module.exports = require('./lib/React');
 
 },{"./lib/React":195}],323:[function(require,module,exports){
+(function() {
+  'use strict';
+
+  if (self.fetch) {
+    return
+  }
+
+  function normalizeName(name) {
+    if (typeof name !== 'string') {
+      name = name.toString();
+    }
+    if (/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) {
+      throw new TypeError('Invalid character in header field name')
+    }
+    return name.toLowerCase()
+  }
+
+  function normalizeValue(value) {
+    if (typeof value !== 'string') {
+      value = value.toString();
+    }
+    return value
+  }
+
+  function Headers(headers) {
+    this.map = {}
+
+    if (headers instanceof Headers) {
+      headers.forEach(function(value, name) {
+        this.append(name, value)
+      }, this)
+
+    } else if (headers) {
+      Object.getOwnPropertyNames(headers).forEach(function(name) {
+        this.append(name, headers[name])
+      }, this)
+    }
+  }
+
+  Headers.prototype.append = function(name, value) {
+    name = normalizeName(name)
+    value = normalizeValue(value)
+    var list = this.map[name]
+    if (!list) {
+      list = []
+      this.map[name] = list
+    }
+    list.push(value)
+  }
+
+  Headers.prototype['delete'] = function(name) {
+    delete this.map[normalizeName(name)]
+  }
+
+  Headers.prototype.get = function(name) {
+    var values = this.map[normalizeName(name)]
+    return values ? values[0] : null
+  }
+
+  Headers.prototype.getAll = function(name) {
+    return this.map[normalizeName(name)] || []
+  }
+
+  Headers.prototype.has = function(name) {
+    return this.map.hasOwnProperty(normalizeName(name))
+  }
+
+  Headers.prototype.set = function(name, value) {
+    this.map[normalizeName(name)] = [normalizeValue(value)]
+  }
+
+  Headers.prototype.forEach = function(callback, thisArg) {
+    Object.getOwnPropertyNames(this.map).forEach(function(name) {
+      this.map[name].forEach(function(value) {
+        callback.call(thisArg, value, name, this)
+      }, this)
+    }, this)
+  }
+
+  function consumed(body) {
+    if (body.bodyUsed) {
+      return Promise.reject(new TypeError('Already read'))
+    }
+    body.bodyUsed = true
+  }
+
+  function fileReaderReady(reader) {
+    return new Promise(function(resolve, reject) {
+      reader.onload = function() {
+        resolve(reader.result)
+      }
+      reader.onerror = function() {
+        reject(reader.error)
+      }
+    })
+  }
+
+  function readBlobAsArrayBuffer(blob) {
+    var reader = new FileReader()
+    reader.readAsArrayBuffer(blob)
+    return fileReaderReady(reader)
+  }
+
+  function readBlobAsText(blob) {
+    var reader = new FileReader()
+    reader.readAsText(blob)
+    return fileReaderReady(reader)
+  }
+
+  var support = {
+    blob: 'FileReader' in self && 'Blob' in self && (function() {
+      try {
+        new Blob();
+        return true
+      } catch(e) {
+        return false
+      }
+    })(),
+    formData: 'FormData' in self
+  }
+
+  function Body() {
+    this.bodyUsed = false
+
+
+    this._initBody = function(body) {
+      this._bodyInit = body
+      if (typeof body === 'string') {
+        this._bodyText = body
+      } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
+        this._bodyBlob = body
+      } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
+        this._bodyFormData = body
+      } else if (!body) {
+        this._bodyText = ''
+      } else {
+        throw new Error('unsupported BodyInit type')
+      }
+    }
+
+    if (support.blob) {
+      this.blob = function() {
+        var rejected = consumed(this)
+        if (rejected) {
+          return rejected
+        }
+
+        if (this._bodyBlob) {
+          return Promise.resolve(this._bodyBlob)
+        } else if (this._bodyFormData) {
+          throw new Error('could not read FormData body as blob')
+        } else {
+          return Promise.resolve(new Blob([this._bodyText]))
+        }
+      }
+
+      this.arrayBuffer = function() {
+        return this.blob().then(readBlobAsArrayBuffer)
+      }
+
+      this.text = function() {
+        var rejected = consumed(this)
+        if (rejected) {
+          return rejected
+        }
+
+        if (this._bodyBlob) {
+          return readBlobAsText(this._bodyBlob)
+        } else if (this._bodyFormData) {
+          throw new Error('could not read FormData body as text')
+        } else {
+          return Promise.resolve(this._bodyText)
+        }
+      }
+    } else {
+      this.text = function() {
+        var rejected = consumed(this)
+        return rejected ? rejected : Promise.resolve(this._bodyText)
+      }
+    }
+
+    if (support.formData) {
+      this.formData = function() {
+        return this.text().then(decode)
+      }
+    }
+
+    this.json = function() {
+      return this.text().then(JSON.parse)
+    }
+
+    return this
+  }
+
+  // HTTP methods whose capitalization should be normalized
+  var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT']
+
+  function normalizeMethod(method) {
+    var upcased = method.toUpperCase()
+    return (methods.indexOf(upcased) > -1) ? upcased : method
+  }
+
+  function Request(url, options) {
+    options = options || {}
+    this.url = url
+
+    this.credentials = options.credentials || 'omit'
+    this.headers = new Headers(options.headers)
+    this.method = normalizeMethod(options.method || 'GET')
+    this.mode = options.mode || null
+    this.referrer = null
+
+    if ((this.method === 'GET' || this.method === 'HEAD') && options.body) {
+      throw new TypeError('Body not allowed for GET or HEAD requests')
+    }
+    this._initBody(options.body)
+  }
+
+  function decode(body) {
+    var form = new FormData()
+    body.trim().split('&').forEach(function(bytes) {
+      if (bytes) {
+        var split = bytes.split('=')
+        var name = split.shift().replace(/\+/g, ' ')
+        var value = split.join('=').replace(/\+/g, ' ')
+        form.append(decodeURIComponent(name), decodeURIComponent(value))
+      }
+    })
+    return form
+  }
+
+  function headers(xhr) {
+    var head = new Headers()
+    var pairs = xhr.getAllResponseHeaders().trim().split('\n')
+    pairs.forEach(function(header) {
+      var split = header.trim().split(':')
+      var key = split.shift().trim()
+      var value = split.join(':').trim()
+      head.append(key, value)
+    })
+    return head
+  }
+
+  Body.call(Request.prototype)
+
+  function Response(bodyInit, options) {
+    if (!options) {
+      options = {}
+    }
+
+    this._initBody(bodyInit)
+    this.type = 'default'
+    this.url = null
+    this.status = options.status
+    this.ok = this.status >= 200 && this.status < 300
+    this.statusText = options.statusText
+    this.headers = options.headers instanceof Headers ? options.headers : new Headers(options.headers)
+    this.url = options.url || ''
+  }
+
+  Body.call(Response.prototype)
+
+  self.Headers = Headers;
+  self.Request = Request;
+  self.Response = Response;
+
+  self.fetch = function(input, init) {
+    // TODO: Request constructor should accept input, init
+    var request
+    if (Request.prototype.isPrototypeOf(input) && !init) {
+      request = input
+    } else {
+      request = new Request(input, init)
+    }
+
+    return new Promise(function(resolve, reject) {
+      var xhr = new XMLHttpRequest()
+
+      function responseURL() {
+        if ('responseURL' in xhr) {
+          return xhr.responseURL
+        }
+
+        // Avoid security warnings on getResponseHeader when not allowed by CORS
+        if (/^X-Request-URL:/m.test(xhr.getAllResponseHeaders())) {
+          return xhr.getResponseHeader('X-Request-URL')
+        }
+
+        return;
+      }
+
+      xhr.onload = function() {
+        var status = (xhr.status === 1223) ? 204 : xhr.status
+        if (status < 100 || status > 599) {
+          reject(new TypeError('Network request failed'))
+          return
+        }
+        var options = {
+          status: status,
+          statusText: xhr.statusText,
+          headers: headers(xhr),
+          url: responseURL()
+        }
+        var body = 'response' in xhr ? xhr.response : xhr.responseText;
+        resolve(new Response(body, options))
+      }
+
+      xhr.onerror = function() {
+        reject(new TypeError('Network request failed'))
+      }
+
+      xhr.open(request.method, request.url, true)
+
+      if (request.credentials === 'include') {
+        xhr.withCredentials = true
+      }
+
+      if ('responseType' in xhr && support.blob) {
+        xhr.responseType = 'blob'
+      }
+
+      request.headers.forEach(function(value, name) {
+        xhr.setRequestHeader(name, value)
+      })
+
+      xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit)
+    })
+  }
+  self.fetch.polyfill = true
+})();
+
+},{}],324:[function(require,module,exports){
 var React = require('react');
 var state = require('./app-state');
 
@@ -38805,7 +39130,7 @@ var Answer = React.createClass({displayName: "Answer",
 
 module.exports = Answer;
 
-},{"./app-state":324,"react":322}],324:[function(require,module,exports){
+},{"./app-state":325,"react":322}],325:[function(require,module,exports){
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var calculateResults = require('./calculate-results');
@@ -38815,6 +39140,7 @@ function State(){
     this.currentQuestion = null;
     this.isFinished = false;
     this.score = 0;
+    this.date = null;
     EventEmitter.call(this);
 }
 util.inherits(State, EventEmitter);
@@ -38829,8 +39155,10 @@ State.prototype.calculateResult = function (force){
 };
 
 State.prototype.finish = function(questions, force){
-    this.score = calculateResults(questions, force);
-    if(this.score !== null) {
+    var result = calculateResults(questions, force);
+    if(result !== null) {
+        this.score = result.score;
+        this.date = result.date;
         this.isFinished = true;
         this.emit("finish");
     }
@@ -38840,7 +39168,7 @@ var state = new State();
 
 module.exports = state;
 
-},{"./calculate-results":327,"events":147,"util":165}],325:[function(require,module,exports){
+},{"./calculate-results":328,"events":147,"util":165}],326:[function(require,module,exports){
 var React = require('react');
 var QuestionPage = require('./question-page.react.js');
 var state = require('./app-state');
@@ -38852,7 +39180,8 @@ module.exports = React.createClass({displayName: "exports",
         return {
             currentQuestion: state.currentQuestion,
             isFinished: false,
-            score: 0
+            score: 0,
+            date: null
         };
     },
 
@@ -38873,7 +39202,8 @@ module.exports = React.createClass({displayName: "exports",
         state.on("finish", function(){
             this.setState({
                 isFinished: state.isFinished,
-                score: state.score
+                score: state.score,
+                date: state.date
             })
         }.bind(this));
     },
@@ -38883,7 +39213,7 @@ module.exports = React.createClass({displayName: "exports",
 
         var currentPage;
         if (this.state.isFinished === true) {
-            currentPage = React.createElement(Result, {questions: questions, score: this.state.score});
+            currentPage = React.createElement(Result, {questions: questions, score: this.state.score, date: this.state.date});
         } else if (this.state.currentQuestion !== null) {
             var question = questions[this.state.currentQuestion];
             var amountOfQuestions = questions.length;
@@ -38896,7 +39226,7 @@ module.exports = React.createClass({displayName: "exports",
     }
 });
 
-},{"./app-state":324,"./question-page.react.js":330,"./result.react.js":331,"react":322}],326:[function(require,module,exports){
+},{"./app-state":325,"./question-page.react.js":331,"./result.react.js":332,"react":322}],327:[function(require,module,exports){
 var React = require('react');
 
 var Button = React.createClass({displayName: "Button",
@@ -38909,23 +39239,53 @@ var Button = React.createClass({displayName: "Button",
 
 module.exports = Button;
 
-},{"react":322}],327:[function(require,module,exports){
+},{"react":322}],328:[function(require,module,exports){
+var newResult = {
+    date: "",
+    score: "",
+    result: ""
+};
+
 function finishTest(questions, force){
     if(force) {
         if (!isAllAnswered(questions)) {
             populateUnansweredQuestions(questions);
         }
-        return getUserScore(questions);
     }
     else {
         if(!isAllAnswered(questions)) {
             alert("Please select answers for all the questions");
             return null;
         }
-        else {
-            return getUserScore(questions);
-        }
     }
+
+    newResult.result = questions;
+    newResult.date = getDate();
+    newResult.score = getScore(questions);
+    saveResult(newResult, function(res){
+        if(res.name == "MongoError"){
+            console.log("Error when saving to DB: " + res);
+        } else { console.log("result was saved to db"); }
+    });
+    return newResult;
+}
+
+function saveResult(result, cb){
+    fetch('/result', {
+        method: 'POST',
+        headers: {
+            "Accept": "application/json",
+            "Content-type": "application/json"
+        },
+        body: JSON.stringify(result)
+    })
+        .then(function(res){
+            return res.json()
+        }).then(function(json){
+            cb(json)
+        }).catch(function(ex){
+            console.log("Error: " + ex)
+        })
 }
 
 function populateUnansweredQuestions(questions){
@@ -38942,7 +39302,7 @@ function isAllAnswered(questions){
     });
 }
 
-function getUserScore(questions){
+function getScore(questions){
     var score = 0;
     questions.forEach(function(question){
         if(question.userAnswer === question.correct){
@@ -38952,9 +39312,13 @@ function getUserScore(questions){
     return score;
 }
 
+function getDate(){
+    return new Date();
+}
+
 module.exports = finishTest;
 
-},{}],328:[function(require,module,exports){
+},{}],329:[function(require,module,exports){
 var NUM_OF_QUESTIONS = 5;
 
 function getJSON(cb) {
@@ -38994,7 +39358,7 @@ module.exports = {
     selectQuestionsForTest: selectQuestionsForTest
 };
 
-},{}],329:[function(require,module,exports){
+},{}],330:[function(require,module,exports){
 var React = require('react');
 var Answer = require('./answer.react.js');
 
@@ -39024,7 +39388,7 @@ var QuestionForm = React.createClass({displayName: "QuestionForm",
 
 module.exports = QuestionForm;
 
-},{"./answer.react.js":323,"react":322}],330:[function(require,module,exports){
+},{"./answer.react.js":324,"react":322}],331:[function(require,module,exports){
 var React = require('react');
 //var ReactTimer = require('./timer.react.js');
 var TopSection = require('./top-menu.react');
@@ -39069,7 +39433,7 @@ var QuestionPage = React.createClass({displayName: "QuestionPage",
 
 module.exports = QuestionPage;
 
-},{"./app-state":324,"./button.react.js":326,"./question-form.react.js":329,"./top-menu.react":334,"react":322}],331:[function(require,module,exports){
+},{"./app-state":325,"./button.react.js":327,"./question-form.react.js":330,"./top-menu.react":335,"react":322}],332:[function(require,module,exports){
 var React = require('react');
 var QuestionForm = require('./question-form.react.js');
 
@@ -39079,6 +39443,7 @@ var Result = React.createClass({displayName: "Result",
         return (
             React.createElement("div", {className: "results"}, 
                 React.createElement("div", {id: "score"}, 
+                    React.createElement("h2", null, "Test finished on: ", this.props.date), 
                     React.createElement("h2", null, "Your score is ", this.props.score, " from ", questions.length)
                 ), 
             questions.map(function(question){
@@ -39094,7 +39459,7 @@ var Result = React.createClass({displayName: "Result",
 
 module.exports = Result;
 
-},{"./question-form.react.js":329,"react":322}],332:[function(require,module,exports){
+},{"./question-form.react.js":330,"react":322}],333:[function(require,module,exports){
 var React = require('react');
 var getQuestionsForTest = require('./createDataForTest').selectQuestionsForTest;
 var App = require('./app.react.js');
@@ -39106,12 +39471,11 @@ module.exports = function startQuiz(user){
     function onQuestionsReady(questions){
 //        if (!user) React.unmountComponentAtNode(document.querySelector('.login-container'));
 //        if(user) React.render(<TopMenu user={user} />, document.querySelector('.horizontal-menu'));
-        history.pushState(null, null, '/quiz');
         React.render(React.createElement(App, {data: questions}), document.querySelector('.app'));
     }
 };
 
-},{"./../shared/horizontal-menu.react.js":337,"./app.react.js":325,"./createDataForTest":328,"react":322}],333:[function(require,module,exports){
+},{"./../shared/horizontal-menu.react.js":338,"./app.react.js":326,"./createDataForTest":329,"react":322}],334:[function(require,module,exports){
 var React = require('react');
 var state = require("./app-state");
 
@@ -39152,7 +39516,7 @@ var Timer = React.createClass({displayName: "Timer",
 
 module.exports = Timer;
 
-},{"./app-state":324,"react":322}],334:[function(require,module,exports){
+},{"./app-state":325,"react":322}],335:[function(require,module,exports){
 var React = require('react');
 var ReactTimer = require('./timer.react.js');
 
@@ -39171,7 +39535,7 @@ module.exports = React.createClass({displayName: "exports",
     }
 });
 
-},{"./timer.react.js":333,"react":322}],335:[function(require,module,exports){
+},{"./timer.react.js":334,"react":322}],336:[function(require,module,exports){
 var React = require('react');
 var bcrypt = require('bcrypt-nodejs');
 var Landing = require('../landing/landing.react');
@@ -39194,16 +39558,6 @@ function saveUserToDB(email, password, cb){
         }).catch(function(ex){
             console.log("Error: ", ex)
         });
-
-/*    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/register', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onload = function(){
-        if (xhr.readyState != 4 && http.status != 200) return;
-        var res = JSON.parse(this.response);
-        cb(res);
-    };
-    xhr.send(params);*/
 }
 
 function handleRegisterRequest(email, password){
@@ -39215,7 +39569,6 @@ function handleRegisterRequest(email, password){
             }
         } else {
                 React.unmountComponentAtNode(document.querySelector('.registration'));
-                history.pushState(null, null, '/welcome');
                 React.render(React.createElement(Landing, null), document.querySelector('.app'));
         }
     })
@@ -39223,7 +39576,7 @@ function handleRegisterRequest(email, password){
 
 module.exports = handleRegisterRequest;
 
-},{"../landing/landing.react":1,"bcrypt-nodejs":4,"react":322}],336:[function(require,module,exports){
+},{"../landing/landing.react":1,"bcrypt-nodejs":4,"react":322}],337:[function(require,module,exports){
 var React = require('react');
 var makeFormMixin = require('../shared/make-form.react');
 var addUser = require('./register');
@@ -39231,10 +39584,18 @@ var addUser = require('./register');
 var registrationFormMixin = makeFormMixin([
     "email",
     "password",
-    "verify"
+    "confirm"
 ]);
 
 module.exports = React.createClass({displayName: "exports",
+    getInitialState: function(){
+        return {
+            usernameError: {display: 'none'},
+            passwordError: {display: 'none'},
+            confirmationError: {display: 'none'}
+        }
+    },
+
     mixins: [registrationFormMixin],
 
     render: function(){
@@ -39243,13 +39604,16 @@ module.exports = React.createClass({displayName: "exports",
                 React.createElement("form", null, 
                     React.createElement("h1", null, " Registration Form "), 
                     React.createElement("div", null, 
-                        React.createElement("input", {type: "text", placeholder: "Email", onChange: this.onEmailChange})
+                        React.createElement("input", {type: "text", placeholder: "Email", onChange: this.onEmailChange, onBlur: this.validateEmail, autofocus: true}), 
+                        React.createElement("span", {className: "error-msg", style: this.state.usernameError}, "please enter valid email")
                     ), 
                     React.createElement("div", null, 
-                        React.createElement("input", {type: "password", placeholder: "Password", onChange: this.onPasswordChange})
+                        React.createElement("input", {type: "password", placeholder: "Password", onChange: this.onPasswordChange, onBlur: this.validatePassword}), 
+                        React.createElement("span", {className: "error-msg", style: this.state.passwordError}, "password must be from 6 to 21 characters long")
                     ), 
                     React.createElement("div", null, 
-                        React.createElement("input", {type: "password", placeholder: "Password", onChange: this.onVerifyChange})
+                        React.createElement("input", {type: "password", placeholder: "Password", onChange: this.onConfirmChange, onBlur: this.validatePasswordConfirmation}), 
+                        React.createElement("span", {className: "error-msg", style: this.state.confirmationError}, "entered passwords do not match")
                     ), 
                     React.createElement("div", null, 
                         React.createElement("input", {type: "button", value: "Submit", onClick: this.onSubmit})
@@ -39260,10 +39624,50 @@ module.exports = React.createClass({displayName: "exports",
         )
     },
 
+    validateEmail: function(){
+        var usernameRegEx = /^([\w!.%+\-])+@([\w\-])+(?:\.[\w\-]+)+$/;
+        if(!usernameRegEx.test(this.state.email)){
+            this.state.usernameError = {display: 'block'};
+            this.forceUpdate();
+            return false;
+        } else {
+            this.state.usernameError = {display: 'none'};
+            this.forceUpdate();
+            return true;
+        }
+    },
+
+    validatePassword: function(){
+        var passwordRegEx = /^[A-Za-z0-9!@#$%^&*()_]{6,20}$/;
+        if(!passwordRegEx.test(this.state.password)){
+            this.state.passwordError = {display: 'block'};
+            this.forceUpdate();
+            return false;
+        } else {
+            this.state.passwordError = {display: 'none'};
+            this.forceUpdate();
+            return true;
+        }
+    },
+
+    validatePasswordConfirmation: function(){
+        if(this.state.password !== this.state.confirm){
+            this.state.confirmationError = {display: 'block'};
+            this.forceUpdate();
+            return false;
+        } else {
+            this.state.confirmationError = {display: 'none'};
+            this.forceUpdate();
+            return true;
+        }
+    },
+
     onSubmit: function(){
         var email = this.state.email;
         var password = this.state.password;
-        addUser(email, password);
+        if(this.validateEmail() && this.validatePassword() && this.validatePasswordConfirmation()){
+            addUser(email, password);
+        }
     },
 
     componentWillUnmount: function(){
@@ -39271,7 +39675,7 @@ module.exports = React.createClass({displayName: "exports",
     }
 });
 
-},{"../shared/make-form.react":339,"./register":335,"react":322}],337:[function(require,module,exports){
+},{"../shared/make-form.react":340,"./register":336,"react":322}],338:[function(require,module,exports){
 var React = require('react');
 
 module.exports = React.createClass({displayName: "exports",
@@ -39283,13 +39687,14 @@ module.exports = React.createClass({displayName: "exports",
 });
 
 
-},{"react":322}],338:[function(require,module,exports){
+},{"react":322}],339:[function(require,module,exports){
 var Login = require('../login/login.react.js');
 var React = require('react');
+require('whatwg-fetch');
 
 React.render(React.createElement(Login, null), document.querySelector('.login-container'));
 
-},{"../login/login.react.js":3,"react":322}],339:[function(require,module,exports){
+},{"../login/login.react.js":3,"react":322,"whatwg-fetch":323}],340:[function(require,module,exports){
 function makeFormMixin(fields){
     var mixin = {
         getInitialState: function(){
@@ -39325,4 +39730,4 @@ function camelJoin(parts){
 
 module.exports = makeFormMixin;
 
-},{}]},{},[338]);
+},{}]},{},[339]);

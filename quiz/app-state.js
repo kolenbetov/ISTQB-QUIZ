@@ -7,6 +7,7 @@ function State(){
     this.currentQuestion = null;
     this.isFinished = false;
     this.score = 0;
+    this.date = null;
     EventEmitter.call(this);
 }
 util.inherits(State, EventEmitter);
@@ -21,8 +22,10 @@ State.prototype.calculateResult = function (force){
 };
 
 State.prototype.finish = function(questions, force){
-    this.score = calculateResults(questions, force);
-    if(this.score !== null) {
+    var result = calculateResults(questions, force);
+    if(result !== null) {
+        this.score = result.score;
+        this.date = result.date;
         this.isFinished = true;
         this.emit("finish");
     }
