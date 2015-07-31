@@ -2,7 +2,7 @@ body {
     background-color: #DFDFE0;
 }
 
-.login-container {
+.login-container, .registration {
     text-align: center;
     width: 300px;
     margin: 0 auto;
@@ -15,15 +15,15 @@ body {
     color: #525050;
 }
 
-.login-container h1{
+.login-container h1, .registration h1 {
     font: bold 25px Helvetica, Arial, sans-serif;
 }
 
-.login-container form{
+.login-container form, .registration form {
     padding: 0 20px 0 20px;
 }
 
-.login-container input {
+.login-container input, .registration input {
     border-color: #cccbcb #aeaeae;
     border-radius: 3px;
     border-style: solid;
@@ -32,17 +32,29 @@ body {
     margin-bottom: 20px;
 }
 
-.login-container input[type="text"], input[type="password"] {
+input[type="text"], input[type="password"] {
     padding: 7px 20px 7px 40px;
     margin: 0 0 5px;
 }
 
-.login-container input[type="button"]{
+input[type="button"]{
     float: left;
     cursor: pointer;
     font: bold 14px Arial;
     margin: 10px 0 20px 15px;
     color: #525050;
+}
+
+.registration input[type="button"] {
+    float: none;
+    margin: 10px 0 20px 0px;
+}
+
+.error-msg {
+    color: red;
+    text-align: left;
+    padding: 0px 0px 5px 25px;
+    font: 12px Arial;
 }
 
 .login-container a {
@@ -56,6 +68,15 @@ body {
     width: 40%;
     display: block;
     margin: 15px auto;
+}
+
+#start-quiz, #results-history{
+    width: 200px;
+    height: 70px;
+    margin: 25px auto 0px auto;
+    position: relative;
+    display: block;
+    top: 50%;
 }
 
 .top-section {

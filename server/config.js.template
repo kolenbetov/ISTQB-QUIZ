@@ -1,0 +1,7 @@
+module.exports = {
+
+  dbAdmin: "username",
+  dbHost: "@example.com:9999/db-name",
+  dbPass: "password"
+
+};

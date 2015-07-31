@@ -7,15 +7,19 @@ function saveUserToDB(email, password, cb){
     var password_hash = bcrypt.hashSync(password, salt);
 
     var params = 'username=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password_hash);
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/register', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onload = function(){
-        if (xhr.readyState != 4 && http.status != 200) return;
-        var res = JSON.parse(this.response);
-        cb(res);
-    };
-    xhr.send(params);
+
+    fetch('/register', {
+        method: 'POST',
+        headers: {"Content-type": "application/x-www-form-urlencoded; charset=UTF-8"},
+        body: params
+    })
+        .then(function(res){
+            return res.json()
+        }).then(function(json){
+            cb(json)
+        }).catch(function(ex){
+            console.log("Error: ", ex)
+        });
 }
 
 function handleRegisterRequest(email, password){

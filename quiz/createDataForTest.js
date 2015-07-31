@@ -1,15 +1,14 @@
 var NUM_OF_QUESTIONS = 5;
 
 function getJSON(cb) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/start', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onload = function () {
-        if (xhr.readyState !=4 && http.status != 200 ) return;
-        var questions = JSON.parse(this.response);
-        cb(questions);
-    };
-    xhr.send();
+    fetch('/questions')
+        .then(function(res) {
+            return res.json();
+        }).then(function(json) {
+            cb(json);
+        }).catch(function(ex){
+            console.log("questions were not retrieved", ex)
+        });
 }
 
 function generateRandomNumber(max) {

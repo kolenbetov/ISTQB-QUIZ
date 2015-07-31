@@ -9,7 +9,8 @@ module.exports = React.createClass({
         return {
             currentQuestion: state.currentQuestion,
             isFinished: false,
-            score: 0
+            score: 0,
+            date: null
         };
     },
 
@@ -30,7 +31,8 @@ module.exports = React.createClass({
         state.on("finish", function(){
             this.setState({
                 isFinished: state.isFinished,
-                score: state.score
+                score: state.score,
+                date: state.date
             })
         }.bind(this));
     },
@@ -40,7 +42,7 @@ module.exports = React.createClass({
 
         var currentPage;
         if (this.state.isFinished === true) {
-            currentPage = <Result questions={questions} score={this.state.score} />;
+            currentPage = <Result questions={questions} score={this.state.score} date={this.state.date}/>;
         } else if (this.state.currentQuestion !== null) {
             var question = questions[this.state.currentQuestion];
             var amountOfQuestions = questions.length;

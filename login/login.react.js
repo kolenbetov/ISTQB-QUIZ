@@ -24,7 +24,7 @@ module.exports = React.createClass({
                 <form>
                     <h1>Login Form</h1>
                     <div>
-                        <input type="text" id="username" placeholder="Username" onChange={this.onUsernameChange}></input>
+                        <input type="text" id="username" placeholder="Email" onChange={this.onUsernameChange}></input>
                     </div>
                     <div>
                         <input type="password" id="password" placeholder="Password" onChange={this.onPasswordChange}></input>
